@@ -1,0 +1,16 @@
+[package]
+name = "comet"
+version = "0.1.0"
+edition = "2024"
+description = "A CLI tool for generating consistent commit messages using the Conventional Commits standard"
+license = "GPL-3.0"
+authors = ["Alexander Dernild <alex@dernild.dk>"]
+repository = "https://github.com/adernild/comet"
+keywords = ["git", "commit", "conventional-commits", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+
+[[bin]]
+name = "git-cmt"
+path = "src/main.rs"
