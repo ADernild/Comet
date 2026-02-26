@@ -9,8 +9,17 @@ repository = "https://github.com/adernild/comet"
 keywords = ["git", "commit", "conventional-commits", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 
-[dependencies]
-
 [[bin]]
 name = "git-cmt"
 path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.102"
+clap = { version = "4.5.60", features = ["derive"] }
+git2 = "0.20.4"
+inquire = "0.9.4"
+regex = "1.12.3"
+serde = { version = "1.0.228", features = ["derive"] }
+textwrap = "0.16.2"
+thiserror = "2.0.18"
+toml = "1.0.3"
