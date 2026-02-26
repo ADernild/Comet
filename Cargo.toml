@@ -20,6 +20,7 @@ git2 = "0.20.4"
 inquire = "0.9.4"
 regex = "1.12.3"
 serde = { version = "1.0.228", features = ["derive"] }
+tempfile = "3.26.0"
 textwrap = "0.16.2"
 thiserror = "2.0.18"
 toml = "1.0.3"
