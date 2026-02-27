@@ -22,6 +22,8 @@ pub fn load_from_file(path: &Path) -> Result<Config> {
 
     let config: Config = toml::from_str(&contents).context("Failed to parse config file")?;
 
+    config.validate()?;
+
     Ok(config)
 }
 

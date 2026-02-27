@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,6 +76,35 @@ pub struct Validation {
 }
 
 impl Config {
+    /// Validate that all template placeholders have corresponding fields
+    pub fn validate(&self) -> Result<()> {
+        // Extract placeholders from template
+        let placeholder_regex = regex::Regex::new(r"\{([^}]+)\}").unwrap();
+        let placeholders: HashSet<String> = placeholder_regex
+            .captures_iter(&self.output.template)
+            .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_string()))
+            .collect();
+
+        let known_fields: HashSet<String> = self.fields.iter().map(|f| f.id.clone()).collect();
+
+        // Check for undefined placeholders in template
+        let undefined: Vec<String> = placeholders.difference(&known_fields).cloned().collect();
+        if !undefined.is_empty() {
+            bail!(
+                "Template contains undefined placeholders: {}",
+                undefined.join(", ")
+            )
+        }
+
+        // Check for unused fields
+        let unused: Vec<String> = known_fields.difference(&placeholders).cloned().collect();
+        if !unused.is_empty() {
+            bail!("Config defines unused fields: {}", unused.join(", "))
+        }
+
+        Ok(())
+    }
+
     /// Render the commit message using the template and field values
     pub fn render(&self, values: &std::collections::HashMap<String, String>) -> String {
         let mut output = self.output.template.clone();
