@@ -153,3 +153,191 @@ fn clean_output(text: &str) -> String {
 
     result
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::collections::HashMap;
+
+    // Test fixtures
+    fn create_field(id: &str, required: bool, field_type: FieldType) -> Field {
+        Field {
+            id: id.to_string(),
+            field_type,
+            prompt: format!("{} field", id),
+            required,
+            help: None,
+            options: vec![],
+            validate: None,
+            wrap: None,
+        }
+    }
+
+    fn create_config(template: &str, field_ids: Vec<(&str, bool, FieldType)>) -> Config {
+        Config {
+            output: OutputConfig {
+                template: template.to_string(),
+            },
+            fields: field_ids
+                .into_iter()
+                .map(|(id, required, field_type)| create_field(id, required, field_type))
+                .collect(),
+        }
+    }
+
+    fn create_values(pairs: Vec<(&str, &str)>) -> HashMap<String, String> {
+        pairs
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
+    }
+
+    // Validation tests
+    #[test]
+    fn test_validate_rejects_undefined_placeholders() {
+        let config = create_config(
+            "{type}: {undefined_field}",
+            vec![("type", true, FieldType::Text)],
+        );
+
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_rejects_unused_fields() {
+        let config = create_config(
+            "{type}: {description}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("description", true, FieldType::Text),
+                ("unused_field", false, FieldType::Text),
+            ],
+        );
+
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_accepts_valid_configs() {
+        let config = create_config(
+            "{type}({scope}): {description}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("scope", false, FieldType::Text),
+                ("description", true, FieldType::Text),
+            ],
+        );
+
+        assert!(config.validate().is_ok());
+    }
+
+    // Render tests
+    #[test]
+    fn test_render_with_all_fields() {
+        let config = create_config(
+            "{type}({scope}): {description}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("scope", false, FieldType::Text),
+                ("description", true, FieldType::Text),
+            ],
+        );
+
+        let values = create_values(vec![
+            ("type", "feat"),
+            ("scope", "api"),
+            ("description", "add endpoint"),
+        ]);
+
+        let result = config.render(&values).unwrap();
+        assert_eq!(result, "feat(api): add endpoint");
+    }
+
+    #[test]
+    fn test_render_removes_empty_optional_field() {
+        let config = create_config(
+            "{type}({scope}): {description}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("scope", false, FieldType::Text),
+                ("description", true, FieldType::Text),
+            ],
+        );
+        let values = create_values(vec![
+            ("type", "feat"),
+            ("scope", ""),
+            ("description", "add endpoint"),
+        ]);
+
+        let result = config.render(&values).unwrap();
+        assert_eq!(result, "feat: add endpoint");
+    }
+
+    #[test]
+    fn test_render_with_multiline_fields() {
+        let config = create_config(
+            "{type}: {description}\n\n{body}\n\n{footer}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("description", true, FieldType::Text),
+                ("body", false, FieldType::Multiline),
+                ("footer", false, FieldType::Text),
+            ],
+        );
+
+        let values = create_values(vec![
+            ("type", "feat"),
+            ("description", "add feature"),
+            ("body", "Detailed explanation"),
+            ("footer", "Closes #123"),
+        ]);
+
+        let result = config.render(&values).unwrap();
+        assert_eq!(
+            result,
+            "feat: add feature\n\nDetailed explanation\n\nCloses #123"
+        );
+    }
+
+    #[test]
+    fn test_render_removes_empty_optional_multiline_fields() {
+        let config = create_config(
+            "{type}: {description}\n\n{body}\n\n{footer}",
+            vec![
+                ("type", true, FieldType::Text),
+                ("description", true, FieldType::Text),
+                ("body", false, FieldType::Multiline),
+                ("footer", false, FieldType::Text),
+            ],
+        );
+
+        let values = create_values(vec![
+            ("type", "feat"),
+            ("description", "add feature"),
+            ("body", ""),
+            ("footer", ""),
+        ]);
+
+        let result = config.render(&values).unwrap();
+        assert_eq!(result, "feat: add feature");
+    }
+
+    #[test]
+    fn test_render_rejects_empty_required_fields() {
+        let config = create_config(
+            "{type}({scope}): {description}",
+            vec![
+                ("type", true, FieldType::Select),
+                ("scope", false, FieldType::Multiline),
+                ("description", true, FieldType::Text),
+            ],
+        );
+        let values = create_values(vec![
+            ("type", ""),
+            ("scope", ""),
+            ("description", "add feature"),
+        ]);
+
+        assert!(config.render(&values).is_err());
+    }
+}
