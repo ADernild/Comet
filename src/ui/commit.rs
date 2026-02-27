@@ -37,7 +37,9 @@ fn prompt_field(field: &Field) -> Result<String, InquireError> {
 
 /// Prompt for select field
 fn prompt_select(field: &Field) -> Result<String, InquireError> {
-    let mut select = Select::new(&field.prompt, field.options.clone());
+    let options = field.options.as_ref().unwrap();
+
+    let mut select = Select::new(&field.prompt, options.clone());
 
     if let Some(help) = &field.help {
         select = select.with_help_message(help);

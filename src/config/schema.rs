@@ -41,7 +41,7 @@ pub struct Field {
 
     /// Options for select fields
     #[serde(default)]
-    pub options: Vec<String>,
+    pub options: Option<Vec<String>>,
 
     /// Validation rules
     pub validate: Option<Validation>,
@@ -51,7 +51,7 @@ pub struct Field {
     pub wrap: Option<usize>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum FieldType {
     Select,
@@ -100,6 +100,19 @@ impl Config {
         let unused: Vec<String> = known_fields.difference(&placeholders).cloned().collect();
         if !unused.is_empty() {
             bail!("Config defines unused fields: {}", unused.join(", "))
+        }
+
+        // Validate that Select fields have options
+        for field in &self.fields {
+            if field.field_type == FieldType::Select {
+                match &field.options {
+                    None => bail!("Select field '{}' must have options", field.id),
+                    Some(opts) if opts.is_empty() => {
+                        bail!("Select field '{}' must have at least one option", field.id)
+                    }
+                    _ => {}
+                }
+            }
         }
 
         Ok(())
@@ -167,7 +180,7 @@ mod test {
             prompt: format!("{} field", id),
             required,
             help: None,
-            options: vec![],
+            options: None,
             validate: None,
             wrap: None,
         }

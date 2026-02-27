@@ -13,19 +13,14 @@ pub fn conventional_commits() -> Config {
                 prompt: "Select commit type".to_string(),
                 required: true,
                 help: Some("Type of change you're committing".to_string()),
-                options: vec![
+                options: Some(vec![
                     "feat".to_string(),
                     "fix".to_string(),
                     "docs".to_string(),
-                    "style".to_string(),
                     "refactor".to_string(),
-                    "perf".to_string(),
                     "test".to_string(),
-                    "build".to_string(),
-                    "ci".to_string(),
                     "chore".to_string(),
-                    "revert".to_string(),
-                ],
+                ]),
                 validate: None,
                 wrap: None,
             },
@@ -35,7 +30,7 @@ pub fn conventional_commits() -> Config {
                 prompt: "Scope (optional)".to_string(),
                 required: false,
                 help: Some("Component affected (e.g., api, auth, ui)".to_string()),
-                options: vec![],
+                options: None,
                 validate: Some(Validation {
                     min: Some(1),
                     max: Some(20),
@@ -49,7 +44,7 @@ pub fn conventional_commits() -> Config {
                 prompt: "Description".to_string(),
                 required: true,
                 help: Some("Brief description of changes (1-72 characters)".to_string()),
-                options: vec![],
+                options: None,
                 validate: Some(Validation {
                     min: Some(1),
                     max: Some(72),
@@ -63,7 +58,7 @@ pub fn conventional_commits() -> Config {
                 prompt: "Body (optional)".to_string(),
                 required: false,
                 help: Some("Detailed explanation of changes".to_string()),
-                options: vec![],
+                options: None,
                 validate: None,
                 wrap: Some(72),
             },
@@ -73,7 +68,7 @@ pub fn conventional_commits() -> Config {
                 prompt: "Footer (optional)".to_string(),
                 required: false,
                 help: Some("Breaking changes, issue references (e.g., 'Closes #42'".to_string()),
-                options: vec![],
+                options: None,
                 validate: Some(Validation {
                     min: None,
                     max: None,
@@ -114,7 +109,8 @@ mod tests {
 
         assert!(matches!(type_field.field_type, FieldType::Select));
         assert!(type_field.required);
-        assert!(!type_field.options.is_empty());
+        assert!(type_field.options.is_some());
+        assert!(!type_field.options.as_ref().unwrap().is_empty());
     }
 
     #[test]
