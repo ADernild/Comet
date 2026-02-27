@@ -1,6 +1,7 @@
-use super::schema::Config;
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+
+use super::schema::Config;
 
 /// Find config file in git repository root
 fn find_config_file() -> Result<Option<PathBuf>> {

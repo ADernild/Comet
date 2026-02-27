@@ -1,7 +1,11 @@
-use crate::{config, git, ui::prompt_commit_from_config};
 use anyhow::Result;
+use std::collections::HashMap;
 
-pub fn run() -> Result<()> {
+use crate::config::FieldType;
+use crate::ui;
+use crate::{cli::CommitArgs, config, git};
+
+pub fn run(args: &CommitArgs) -> Result<()> {
     // Check if we're in a git repository
     let _ = git::find_repository()?;
 
@@ -29,8 +33,10 @@ pub fn run() -> Result<()> {
     // Load config (from file or default)
     let config = config::load()?;
 
-    let commit_message =
-        prompt_commit_from_config(&config).map_err(|e| anyhow::anyhow!("Prompt error {}", e))?;
+    // Resolve field values from args and prompts
+    let values = resolve_values(args, &config)?;
+
+    let commit_message = config.render(&values)?;
 
     println!("\nCommit message:\n");
     println!("─────────────────────────────────────");
@@ -54,4 +60,44 @@ pub fn run() -> Result<()> {
     println!("Commit created: {}", commit_oid);
 
     Ok(())
+}
+
+fn resolve_values(args: &CommitArgs, config: &config::Config) -> Result<HashMap<String, String>> {
+    let mut values = args.to_values();
+
+    // If no_prompt is set, validate we have all required fields
+    if args.no_prompt {
+        let missing: Vec<&str> = config
+            .fields
+            .iter()
+            .filter(|f| f.required && !values.contains_key(&f.id))
+            .map(|f| f.id.as_str())
+            .collect();
+
+        if !missing.is_empty() {
+            anyhow::bail!("Missing required fields: {}", missing.join(", "));
+        }
+    } else {
+        // Prompt for missing fields
+        for field in &config.fields {
+            if !values.contains_key(&field.id) {
+                let value = ui::prompt_field(field)?;
+                values.insert(field.id.clone(), value);
+            }
+        }
+    }
+
+    // Apply wrapping to multiline fields
+    for field in &config.fields {
+        if let Some(value) = values.get_mut(&field.id) {
+            if matches!(field.field_type, FieldType::Multiline)
+                && !value.is_empty()
+                && let Some(width) = field.wrap
+            {
+                *value = textwrap::fill(value, width);
+            }
+        }
+    }
+
+    Ok(values)
 }

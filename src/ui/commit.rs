@@ -1,33 +1,10 @@
-use crate::config::{Config, Field, FieldType};
 use anyhow::Result;
 use inquire::{InquireError, Select, Text, required, validator::Validation};
-use std::collections::HashMap;
 
-/// Prompt for commit message based on config
-pub fn prompt_commit_from_config(config: &Config) -> Result<String> {
-    let mut values: HashMap<String, String> = HashMap::new();
-
-    // Prompt for each field in order
-    for field in &config.fields {
-        let mut value = prompt_field(field)?;
-
-        // Wrap multiline fields if wrap is specified
-        if matches!(field.field_type, FieldType::Multiline)
-            && !value.is_empty()
-            && let Some(width) = field.wrap
-        {
-            value = textwrap::fill(&value, width);
-        }
-
-        values.insert(field.id.clone(), value);
-    }
-
-    let commit_message = config.render(&values)?;
-    Ok(commit_message)
-}
+use crate::config::{Field, FieldType};
 
 /// Prompt for a single field based on its configuration
-fn prompt_field(field: &Field) -> Result<String, InquireError> {
+pub fn prompt_field(field: &Field) -> Result<String, InquireError> {
     match field.field_type {
         FieldType::Select => prompt_select(field),
         FieldType::Text | FieldType::Multiline => prompt_text(field),
