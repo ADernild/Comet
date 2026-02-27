@@ -2,19 +2,17 @@ use super::schema::Config;
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
-/// Find config file in current directory or parent directories
+/// Find config file in git repository root
 fn find_config_file() -> Result<Option<PathBuf>> {
-    let possible_names = [".cometrc.toml", "comet.toml", ".comet.toml"];
-
+    // Try to find config in git root
     if let Ok(git_root) = crate::git::get_repo_root() {
-        for name in &possible_names {
-            let path = git_root.join(name);
-            if path.exists() {
-                return Ok(Some(path));
-            }
+        let config_path = git_root.join(".comet.toml");
+        if config_path.exists() {
+            return Ok(Some(config_path));
         }
     }
 
+    // If not in git repo or no config found, return None (will use default)
     Ok(None)
 }
 
