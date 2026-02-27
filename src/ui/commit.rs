@@ -1,10 +1,10 @@
+use crate::config::{Config, Field, FieldType};
+use anyhow::Result;
 use inquire::{InquireError, Select, Text, required, validator::Validation};
 use std::collections::HashMap;
 
-use crate::config::{Config, Field, FieldType};
-
 /// Prompt for commit message based on config
-pub fn prompt_commit_from_config(config: &Config) -> Result<String, InquireError> {
+pub fn prompt_commit_from_config(config: &Config) -> Result<String> {
     let mut values: HashMap<String, String> = HashMap::new();
 
     // Prompt for each field in order
@@ -22,7 +22,7 @@ pub fn prompt_commit_from_config(config: &Config) -> Result<String, InquireError
         values.insert(field.id.clone(), value);
     }
 
-    let commit_message = config.render(&values);
+    let commit_message = config.render(&values)?;
     Ok(commit_message)
 }
 

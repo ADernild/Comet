@@ -106,7 +106,7 @@ impl Config {
     }
 
     /// Render the commit message using the template and field values
-    pub fn render(&self, values: &std::collections::HashMap<String, String>) -> String {
+    pub fn render(&self, values: &std::collections::HashMap<String, String>) -> Result<String> {
         let mut output = self.output.template.clone();
 
         let optional_fields: HashSet<String> = self
@@ -119,13 +119,19 @@ impl Config {
         for (key, value) in values {
             let placeholder = format!("{{{}}}", key);
 
-            if value.is_empty() && optional_fields.contains(key) {
-                output = output.replace(&placeholder, "");
+            if value.is_empty() {
+                // If it's optional, remove the placeholder
+                if optional_fields.contains(key) {
+                    output = output.replace(&placeholder, "");
+                } else {
+                    // If it's required and empty, that's an error
+                    bail!("Required field '{}' cannot be empty", key);
+                }
             } else {
                 output = output.replace(&placeholder, value);
             }
         }
-        clean_output(&output)
+        Ok(clean_output(&output))
     }
 }
 
