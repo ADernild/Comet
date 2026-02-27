@@ -36,11 +36,10 @@ pub fn get_staged_files() -> Result<Vec<String>> {
 
     diff.foreach(
         &mut |delta, _| {
-            if let Some(path) = delta.new_file().path() {
-                if let Some(path_str) = path.to_str() {
+            if let Some(path) = delta.new_file().path()
+                && let Some(path_str) = path.to_str() {
                     files.push(path_str.to_string());
                 }
-            }
             true
         },
         None,

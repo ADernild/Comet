@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::config::{Config, Field, FieldType};
 
-/// Prompt for commit messaged based on config
+/// Prompt for commit message based on config
 pub fn prompt_commit_from_config(config: &Config) -> Result<String, InquireError> {
     let mut values: HashMap<String, String> = HashMap::new();
 
@@ -11,11 +11,12 @@ pub fn prompt_commit_from_config(config: &Config) -> Result<String, InquireError
     for field in &config.fields {
         let mut value = prompt_field(field)?;
 
-        // Wrap multile fields if wrap is specified
-        if matches!(field.field_type, FieldType::Multiline) && !value.is_empty() {
-            if let Some(width) = field.wrap {
-                value = textwrap::fill(&value, width);
-            }
+        // Wrap multiline fields if wrap is specified
+        if matches!(field.field_type, FieldType::Multiline)
+            && !value.is_empty()
+            && let Some(width) = field.wrap
+        {
+            value = textwrap::fill(&value, width);
         }
 
         values.insert(field.id.clone(), value);
@@ -86,16 +87,16 @@ fn prompt_text(field: &Field) -> Result<String, InquireError> {
             });
         }
 
-        if let Some(pattern_str) = &validation.pattern {
-            if let Ok(pattern) = regex::Regex::new(pattern_str) {
-                text = text.with_validator(move |input: &str| {
-                    if !input.trim().is_empty() && !pattern.is_match(input) {
-                        Ok(Validation::Invalid("Does not match required format".into()))
-                    } else {
-                        Ok(Validation::Valid)
-                    }
-                });
-            }
+        if let Some(pattern_str) = &validation.pattern
+            && let Ok(pattern) = regex::Regex::new(pattern_str)
+        {
+            text = text.with_validator(move |input: &str| {
+                if !input.trim().is_empty() && !pattern.is_match(input) {
+                    Ok(Validation::Invalid("Does not match required format".into()))
+                } else {
+                    Ok(Validation::Valid)
+                }
+            });
         }
     }
     let answer = text.prompt()?;
