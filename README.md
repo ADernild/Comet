@@ -135,4 +135,7 @@ Fields support validation rules:
 
 - Rust 1.85+ 
 - Git 2.0+
-- GPG (optional, for signed commits)
+
+## License
+
+Licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE) at your option.
