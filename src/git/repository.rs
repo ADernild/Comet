@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+
 use anyhow::{Context, Result};
 use git2::Repository;
-use std::path::PathBuf;
 
 /// Find the git repository starting from current directory
 pub fn find_repository() -> Result<Repository> {

@@ -1,5 +1,6 @@
-use super::repository::find_repository;
 use anyhow::{Context, Result};
+
+use super::repository::find_repository;
 
 /// Check if there are staged changes
 pub fn has_staged_changes() -> Result<bool> {

@@ -1,6 +1,7 @@
-use anyhow::{Context, Result, bail};
 use std::io::Write;
 use std::process::Command;
+
+use anyhow::{Context, Result, bail};
 use tempfile::NamedTempFile;
 
 /// Create a commit with the given message by shelling out to git

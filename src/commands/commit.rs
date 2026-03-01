@@ -1,9 +1,8 @@
-use anyhow::Result;
 use std::collections::HashMap;
 
-use crate::config::FieldType;
-use crate::ui;
-use crate::{cli::CommitArgs, config, git};
+use anyhow::Result;
+
+use crate::{cli::CommitArgs, config, git, ui};
 
 pub fn run(args: &CommitArgs) -> Result<()> {
     // Check if we're in a git repository
@@ -90,7 +89,7 @@ fn resolve_values(args: &CommitArgs, config: &config::Config) -> Result<HashMap<
     // Apply wrapping to multiline fields
     for field in &config.fields {
         if let Some(value) = values.get_mut(&field.id) {
-            if matches!(field.field_type, FieldType::Multiline)
+            if matches!(field.field_type, config::FieldType::Multiline)
                 && !value.is_empty()
                 && let Some(width) = field.wrap
             {

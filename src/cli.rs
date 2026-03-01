@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use std::collections::HashMap;
 
 use crate::commands;
 
