@@ -48,7 +48,7 @@ Comet looks for `.comet.toml` in your git repository root. If not found, it uses
 ```toml
 [output]
 template = """
-{type}({scope}): {description}
+{type}({scope}){break}: {description}
 
 {body}
 
@@ -76,7 +76,6 @@ type = "text"
 prompt = "Scope (optional)"
 required = false
 help = "Component affected (e.g., api, auth, ui)"
-options = []
 
 [field.validate]
 min = 1
@@ -88,7 +87,6 @@ type = "text"
 prompt = "Description"
 required = true
 help = "Brief description of changes (1-72 characters)"
-options = []
 
 [field.validate]
 min = 1
@@ -100,8 +98,17 @@ type = "multiline"
 prompt = "Body (optional)"
 required = false
 help = "Detailed explanation of changes"
-options = []
 wrap = 72
+
+[[field]]
+id = "break"
+type = "confirm"
+prompt = "Breaking change?"
+required = true
+
+[field.values]
+true = "!"
+false = ""
 
 [[field]]
 id = "footer"
@@ -109,7 +116,6 @@ type = "text"
 prompt = "Footer (optional)"
 required = false
 help = "Breaking changes, issue references (e.g., 'Closes #42'"
-options = []
 
 [field.validate]
 pattern = "^[a-zA-Z-]+[: #].+$"
