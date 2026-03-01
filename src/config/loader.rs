@@ -4,20 +4,6 @@ use anyhow::{Context, Result};
 
 use super::schema::Config;
 
-/// Find config file in git repository root
-fn find_config_file() -> Result<Option<PathBuf>> {
-    // Try to find config in git root
-    if let Ok(git_root) = crate::git::get_repo_root() {
-        let config_path = git_root.join(".comet.toml");
-        if config_path.exists() {
-            return Ok(Some(config_path));
-        }
-    }
-
-    // If not in git repo or no config found, return None (will use default)
-    Ok(None)
-}
-
 /// Load config from a file path
 pub fn load_from_file(path: &Path) -> Result<Config> {
     let contents = std::fs::read_to_string(path).context("Failed to parse config file")?;
@@ -59,4 +45,17 @@ pub fn load() -> Result<Config> {
     } else {
         Ok(super::default::conventional_commits())
     }
+}
+
+fn find_config_file() -> Result<Option<PathBuf>> {
+    // Try to find config in git root
+    if let Ok(git_root) = crate::git::get_repo_root() {
+        let config_path = git_root.join(".comet.toml");
+        if config_path.exists() {
+            return Ok(Some(config_path));
+        }
+    }
+
+    // If not in git repo or no config found, return None (will use default)
+    Ok(None)
 }

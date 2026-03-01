@@ -3,7 +3,7 @@ use anyhow::Result;
 use crate::config;
 
 pub fn run() -> Result<()> {
-    let config = config::default::conventional_commits();
+    let config = config::conventional_commits();
     let config_path = config::save(&config)?;
 
     println!("Created config file: {}", config_path.display());

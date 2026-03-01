@@ -12,7 +12,17 @@ pub fn prompt_field(field: &Field) -> Result<String, InquireError> {
     }
 }
 
-/// Prompt for select field
+/// Prompt for boolean confirmation
+pub fn confirm(message: &str, help: Option<&str>, default: bool) -> Result<bool, InquireError> {
+    let mut confirm = inquire::Confirm::new(message).with_default(default);
+
+    if let Some(help_text) = help {
+        confirm = confirm.with_help_message(help_text);
+    }
+
+    confirm.prompt()
+}
+
 fn prompt_select(field: &Field) -> Result<String, InquireError> {
     let options = field.options.as_ref().unwrap();
 
@@ -25,7 +35,6 @@ fn prompt_select(field: &Field) -> Result<String, InquireError> {
     Ok(answer)
 }
 
-/// Prompt for text field
 fn prompt_text(field: &Field) -> Result<String, InquireError> {
     let mut text = Text::new(&field.prompt);
 
@@ -87,18 +96,6 @@ fn prompt_text(field: &Field) -> Result<String, InquireError> {
     }
 }
 
-/// Prompt for boolean confirmation
-pub fn confirm(message: &str, help: Option<&str>, default: bool) -> Result<bool, InquireError> {
-    let mut confirm = inquire::Confirm::new(message).with_default(default);
-
-    if let Some(_help) = help {
-        confirm = confirm.with_help_message(_help);
-    }
-
-    confirm.prompt()
-}
-
-/// Prompt for confirm field
 fn prompt_confirm(field: &Field) -> Result<String, InquireError> {
     let answer = confirm(&field.prompt, field.help.as_deref(), false)?;
 

@@ -1,3 +1,3 @@
-pub mod commit;
+mod commit;
 
 pub use commit::{confirm, prompt_field};
