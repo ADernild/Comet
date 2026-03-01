@@ -55,7 +55,7 @@ pub struct Field {
     pub values: Option<ConfirmValues>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfirmValues {
     #[serde(rename = "true")]
     pub on_true: String,
@@ -156,27 +156,28 @@ impl Config {
                 output = output.replace(&placeholder, value);
             }
         }
-        Ok(clean_output(&output))
+        Ok(Self::clean_output(&output))
     }
-}
 
-fn clean_output(text: &str) -> String {
-    let mut result = text.to_string();
+    /// Clean up the rendered output by removing empty sections
+    fn clean_output(text: &str) -> String {
+        let mut result = text.to_string();
 
-    result = result.replace("()", "");
+        result = result.replace("()", "");
 
-    result = result
-        .lines()
-        .filter(|line| !line.trim().is_empty() || line.is_empty())
-        .collect::<Vec<_>>()
-        .join("\n");
+        result = result
+            .lines()
+            .filter(|line| !line.trim().is_empty() || line.is_empty())
+            .collect::<Vec<_>>()
+            .join("\n");
 
-    while result.contains("\n\n\n") {
-        result = result.replace("\n\n\n", "\n\n")
+        while result.contains("\n\n\n") {
+            result = result.replace("\n\n\n", "\n\n")
+        }
+        result = result.trim().to_string();
+
+        result
     }
-    result = result.trim().to_string();
-
-    result
 }
 
 #[cfg(test)]
