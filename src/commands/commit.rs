@@ -43,20 +43,13 @@ pub fn run(args: &CommitArgs) -> Result<()> {
     println!("─────────────────────────────────────");
 
     // Confirm before committing
-    let confirm = inquire::Confirm::new("Create this commit?")
-        .with_default(true)
-        .prompt()
-        .map_err(|e| anyhow::anyhow!("Prompt error: {}", e))?;
-
-    if !confirm {
-        println!("❌ Commit cancelled");
-        return Ok(());
+    match ui::confirm("Create this commit?", None, true)? {
+        true => {
+            let commit_oid = git::create_commit(&commit_message)?;
+            println!("Commit created: {}", commit_oid);
+        }
+        false => println!("Commit cancelled"),
     }
-
-    // Create the commit
-    let commit_oid = git::create_commit(&commit_message)?;
-
-    println!("Commit created: {}", commit_oid);
 
     Ok(())
 }

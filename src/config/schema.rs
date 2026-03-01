@@ -49,6 +49,18 @@ pub struct Field {
     /// Whether to wrap text at a specific width (for multiline fields)
     #[serde(default)]
     pub wrap: Option<usize>,
+
+    /// For confirm fields: map true/false to custom strings
+    #[serde(default)]
+    pub values: Option<ConfirmValues>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ConfirmValues {
+    #[serde(rename = "true")]
+    pub on_true: String,
+    #[serde(rename = "false")]
+    pub on_false: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -183,6 +195,7 @@ mod test {
             options: None,
             validate: None,
             wrap: None,
+            values: None,
         }
     }
 

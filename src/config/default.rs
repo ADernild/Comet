@@ -23,6 +23,7 @@ pub fn conventional_commits() -> Config {
                 ]),
                 validate: None,
                 wrap: None,
+                values: None,
             },
             Field {
                 id: "scope".to_string(),
@@ -37,6 +38,7 @@ pub fn conventional_commits() -> Config {
                     pattern: None,
                 }),
                 wrap: None,
+                values: None,
             },
             Field {
                 id: "description".to_string(),
@@ -51,6 +53,7 @@ pub fn conventional_commits() -> Config {
                     pattern: None,
                 }),
                 wrap: None,
+                values: None,
             },
             Field {
                 id: "body".to_string(),
@@ -61,6 +64,7 @@ pub fn conventional_commits() -> Config {
                 options: None,
                 validate: None,
                 wrap: Some(72),
+                values: None,
             },
             Field {
                 id: "footer".to_string(),
@@ -75,6 +79,7 @@ pub fn conventional_commits() -> Config {
                     pattern: Some(r"^[a-zA-Z-]+[: #].+$".to_string()),
                 }),
                 wrap: None,
+                values: None,
             },
         ],
     }

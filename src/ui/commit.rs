@@ -87,17 +87,33 @@ fn prompt_text(field: &Field) -> Result<String, InquireError> {
     }
 }
 
+/// Prompt for boolean confirmation
+pub fn confirm(message: &str, help: Option<&str>, default: bool) -> Result<bool, InquireError> {
+    let mut confirm = inquire::Confirm::new(message).with_default(default);
+
+    if let Some(_help) = help {
+        confirm = confirm.with_help_message(_help);
+    }
+
+    confirm.prompt()
+}
+
 /// Prompt for confirm field
 fn prompt_confirm(field: &Field) -> Result<String, InquireError> {
-    let mut confirm = inquire::Confirm::new(&field.prompt);
+    let answer = confirm(&field.prompt, field.help.as_deref(), false)?;
 
-    if let Some(help) = &field.help {
-        confirm = confirm.with_help_message(help);
-    }
-    let answer = confirm.prompt()?;
-    Ok(if answer {
-        "yes".to_string()
+    // Use custom values if provided, otherwise default to "yes"/"no"
+    Ok(if let Some(values) = &field.values {
+        if answer {
+            values.on_true.clone()
+        } else {
+            values.on_false.clone()
+        }
     } else {
-        "no".to_string()
+        if answer {
+            "yes".to_string()
+        } else {
+            "no".to_string()
+        }
     })
 }
