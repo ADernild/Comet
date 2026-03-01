@@ -1,5 +1,5 @@
 use anyhow::Result;
-use inquire::{InquireError, Select, Text, required, validator::Validation};
+use inquire::{Editor, InquireError, Select, Text, required, validator::Validation};
 
 use crate::config::{Field, FieldType};
 
@@ -7,8 +7,9 @@ use crate::config::{Field, FieldType};
 pub fn prompt_field(field: &Field) -> Result<String, InquireError> {
     match field.field_type {
         FieldType::Select => prompt_select(field),
-        FieldType::Text | FieldType::Multiline => prompt_text(field),
+        FieldType::Text => prompt_text(field),
         FieldType::Confirm => prompt_confirm(field),
+        FieldType::Multiline => prompt_editor(field),
     }
 }
 
@@ -113,4 +114,24 @@ fn prompt_confirm(field: &Field) -> Result<String, InquireError> {
             "no".to_string()
         }
     })
+}
+
+fn prompt_editor(field: &Field) -> Result<String, InquireError> {
+    let mut editor = Editor::new(&field.prompt);
+
+    if let Some(help) = &field.help {
+        editor = editor.with_help_message(help);
+    }
+
+    if field.required {
+        editor = editor.with_validator(required!())
+    }
+
+    let answer = editor.prompt()?;
+
+    if answer.trim().is_empty() && !field.required {
+        Ok(String::new())
+    } else {
+        Ok(answer.trim().to_string())
+    }
 }
