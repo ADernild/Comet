@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use dirs;
 
 use super::schema::Config;
 
@@ -43,16 +44,24 @@ pub fn load() -> Result<Config> {
     if let Some(path) = config_path {
         load_from_file(&path)
     } else {
-        Ok(super::default::conventional_commits())
+        Ok(super::templates::conventional_commits())
     }
 }
 
 fn find_config_file() -> Result<Option<PathBuf>> {
-    // Try to find config in git root
+    // 1. Try to find config in git root
     if let Ok(git_root) = crate::git::get_repo_root() {
         let config_path = git_root.join(".comet.toml");
         if config_path.exists() {
             return Ok(Some(config_path));
+        }
+    }
+
+    // 2. Try user config directory (~/.config/comet/.comet.toml)
+    if let Some(config_dir) = dirs::config_dir() {
+        let user_config = config_dir.join("comet").join(".comet.toml");
+        if user_config.exists() {
+            return Ok(Some(user_config));
         }
     }
 

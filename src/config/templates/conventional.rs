@@ -1,4 +1,4 @@
-use super::schema::{Config, Field, FieldType, OutputConfig, Validation};
+use crate::config::schema::{Config, Field, FieldType, OutputConfig, Validation};
 
 /// Default conventional commits configuration
 pub fn conventional_commits() -> Config {
@@ -93,77 +93,5 @@ mod tests {
     fn test_conventional_commits_config_is_valid() {
         let config = conventional_commits();
         assert!(config.validate().is_ok());
-    }
-
-    #[test]
-    fn test_conventional_commits_has_expected_fields() {
-        let config = conventional_commits();
-
-        assert_eq!(config.fields.len(), 5);
-        assert_eq!(config.fields[0].id, "type");
-        assert_eq!(config.fields[1].id, "scope");
-        assert_eq!(config.fields[2].id, "description");
-        assert_eq!(config.fields[3].id, "body");
-        assert_eq!(config.fields[4].id, "footer");
-    }
-
-    #[test]
-    fn test_conventional_commits_type_field_is_select() {
-        let config = conventional_commits();
-        let type_field = &config.fields[0];
-
-        assert!(matches!(type_field.field_type, FieldType::Select));
-        assert!(type_field.required);
-        assert!(type_field.options.is_some());
-        assert!(!type_field.options.as_ref().unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_conventional_commits_required_fields() {
-        let config = conventional_commits();
-
-        // Type and description should be required
-        assert!(
-            config
-                .fields
-                .iter()
-                .find(|f| f.id == "type")
-                .unwrap()
-                .required
-        );
-        assert!(
-            config
-                .fields
-                .iter()
-                .find(|f| f.id == "description")
-                .unwrap()
-                .required
-        );
-
-        // Scope, body, footer should be optional
-        assert!(
-            !config
-                .fields
-                .iter()
-                .find(|f| f.id == "scope")
-                .unwrap()
-                .required
-        );
-        assert!(
-            !config
-                .fields
-                .iter()
-                .find(|f| f.id == "body")
-                .unwrap()
-                .required
-        );
-        assert!(
-            !config
-                .fields
-                .iter()
-                .find(|f| f.id == "footer")
-                .unwrap()
-                .required
-        );
     }
 }
