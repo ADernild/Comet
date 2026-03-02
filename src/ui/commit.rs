@@ -101,18 +101,11 @@ fn prompt_confirm(field: &Field) -> Result<String, InquireError> {
     let answer = confirm(&field.prompt, field.help.as_deref(), false)?;
 
     // Use custom values if provided, otherwise default to "yes"/"no"
-    Ok(if let Some(values) = &field.values {
-        if answer {
-            values.on_true.clone()
-        } else {
-            values.on_false.clone()
-        }
-    } else {
-        if answer {
-            "yes".to_string()
-        } else {
-            "no".to_string()
-        }
+    Ok(match (&field.values, answer) {
+        (Some(values), true) => values.on_true.clone(),
+        (Some(values), false) => values.on_false.clone(),
+        (None, true) => "yes".to_string(),
+        (None, false) => "no".to_string(),
     })
 }
 

@@ -81,13 +81,12 @@ fn resolve_values(args: &CommitArgs, config: &config::Config) -> Result<HashMap<
 
     // Apply wrapping to multiline fields
     for field in &config.fields {
-        if let Some(value) = values.get_mut(&field.id) {
-            if matches!(field.field_type, config::FieldType::Multiline)
-                && !value.is_empty()
-                && let Some(width) = field.wrap
-            {
-                *value = textwrap::fill(value, width);
-            }
+        if let Some(value) = values.get_mut(&field.id)
+            && matches!(field.field_type, config::FieldType::Multiline)
+            && !value.is_empty()
+            && let Some(width) = field.wrap
+        {
+            *value = textwrap::fill(value, width);
         }
     }
 
