@@ -1,7 +1,15 @@
-use std::collections::HashMap;
+mod changelog;
+mod commit;
+mod init;
+mod stats;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+
+// pub use changelog::ChangelogArgs;
+// pub use stats::StatsArgs;
+pub use commit::CommitArgs;
+pub use init::InitArgs;
 
 use crate::commands;
 
@@ -27,21 +35,13 @@ pub enum Commands {
     Commit(CommitArgs),
 
     /// Initialize comet config
-    Init {},
+    Init(InitArgs),
 
     /// Generate changelog from commits
     Changelog {},
 
     /// Show commit stats
     Stats {},
-}
-
-#[derive(Debug, Parser, Default)]
-pub struct CommitArgs {
-    #[arg(short = 'f', long = "field", value_parser=parse_key_val, number_of_values = 1)]
-    pub fields: Vec<(String, String)>,
-    #[arg(long)]
-    pub no_prompt: bool,
 }
 
 impl Cli {
@@ -57,22 +57,10 @@ impl Commands {
     pub fn execute(&self) -> Result<()> {
         match self {
             Commands::Commit(args) => commands::commit::run(args)?,
-            Commands::Init {} => commands::init::run()?,
+            Commands::Init(args) => commands::init::run(args)?,
             Commands::Changelog {} => commands::changelog::run()?,
             Commands::Stats {} => commands::stats::run()?,
         }
         Ok(())
     }
-}
-
-impl CommitArgs {
-    pub fn to_values(&self) -> HashMap<String, String> {
-        self.fields.iter().cloned().collect()
-    }
-}
-
-fn parse_key_val(s: &str) -> Result<(String, String), String> {
-    let pos = s.find('=').ok_or("must be in key=value format")?;
-
-    Ok((s[..pos].to_string(), s[pos + 1..].to_string()))
 }
