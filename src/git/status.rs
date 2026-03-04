@@ -14,9 +14,6 @@ pub fn has_staged_changes() -> Result<bool> {
         Err(e) => return Err(e).context("Failed to get HEAD reference"),
     };
 
-    // let head = repo.head().context("Failed to get HEAD reference")?;
-    // let head_tree = head.peel_to_tree().context("Failed to get HEAD tree")?;
-
     // Get the index tree
     let index_oid = index.write_tree().context("Failed to write index tree")?;
     let index_tree = repo
