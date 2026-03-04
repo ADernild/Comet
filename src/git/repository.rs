@@ -22,11 +22,12 @@ pub fn get_repo_root() -> Result<PathBuf> {
 pub fn get_current_branch() -> Result<String> {
     let repo = find_repository()?;
 
-    let head = repo.head().context("Failed to get HEAD reference")?;
-
-    if let Some(branch_name) = head.shorthand() {
-        Ok(branch_name.to_string())
-    } else {
-        Ok("HEAD".to_string())
+    match repo.head() {
+        Ok(head) => Ok(head.shorthand().unwrap_or("HEAD").to_string()),
+        Err(e) if e.code() == git2::ErrorCode::UnbornBranch => {
+            // No commits yet - return the default branch name
+            Ok("main (no commits yet)".to_string())
+        }
+        Err(e) => Err(e).context("Failed to get HEAD reference"),
     }
 }
