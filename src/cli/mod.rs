@@ -1,4 +1,3 @@
-mod changelog;
 mod commit;
 mod init;
 mod stats;
@@ -6,7 +5,6 @@ mod stats;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
-// pub use changelog::ChangelogArgs;
 // pub use stats::StatsArgs;
 pub use commit::CommitArgs;
 pub use init::InitArgs;
@@ -37,9 +35,6 @@ pub enum Commands {
     /// Initialize comet config
     Init(InitArgs),
 
-    /// Generate changelog from commits
-    Changelog {},
-
     /// Show commit stats
     Stats {},
 }
@@ -58,7 +53,6 @@ impl Commands {
         match self {
             Commands::Commit(args) => commands::commit::run(args)?,
             Commands::Init(args) => commands::init::run(args)?,
-            Commands::Changelog {} => commands::changelog::run()?,
             Commands::Stats {} => commands::stats::run()?,
         }
         Ok(())
