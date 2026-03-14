@@ -12,15 +12,6 @@ Stop manually formatting git commit messages. Define your commit schema once, an
   <img src="demo.gif" alt="Comet Demo" />
 </p>
 
-## Features
-
-- 🎯 **Interactive prompts** - Step-by-step guidance for creating git commits
-- ⚙️ **Schema-driven** - Define your own git commit message format via TOML
-- 📝 **Conventional commits** - Ships with Conventional Commits preset
-- ✅ **Built-in validation** - Enforce message length, patterns, and required fields
-- ✍️ **Git integration** - Uses `git commit` under the hood, respecting all your existing Git configuration
-- 🔍 **Git-aware** - Detects repository and shows staged files
-
 ## Installation
 
 ### Via Cargo (Recommended)
@@ -61,6 +52,15 @@ git cmt -h
 
 > [!NOTE]
 > Use `-h` for help, not `--help`. Git intercepts `--help` to look for man pages.
+
+### Features
+
+- 🎯 **Interactive prompts** - Step-by-step guidance for creating git commits
+- ⚙️ **Schema-driven** - Define your own git commit message format via TOML
+- 📝 **Conventional commits** - Ships with Conventional Commits preset
+- ✅ **Built-in validation** - Enforce message length, patterns, and required fields
+- ✍️ **Git integration** - Uses `git commit` under the hood, respecting all your existing Git configuration
+- 🔍 **Git-aware** - Detects repository and shows staged files
 
 ## Usage
 
