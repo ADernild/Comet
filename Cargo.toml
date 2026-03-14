@@ -22,7 +22,7 @@ inquire = { version = "0.9.4", features = ["editor"] }
 regex = "1.12.3"
 serde = { version = "1.0.228", features = ["derive"] }
 strum = { version = "0.28.0", features = ["derive"] }
-tempfile = "3.26.0"
+tempfile = "3.27.0"
 textwrap = "0.16.2"
 toml = "1.0.3"
 
