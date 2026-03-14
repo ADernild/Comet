@@ -23,9 +23,20 @@ Stop manually formatting git commit messages. Define your commit schema once, an
 
 ## Installation
 
+### Via Cargo (Recommended)
+
 ```sh
-cargo install --path .
+cargo install git-cmt
 ```
+
+### Via Installation Script
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/adernild/comet/releases/download/v0.1.0/git-cmt-installer.sh | sh
+
+```
+
+### Verify Installation
 
 The binary is named `git-cmt`, which allows you to invoke it as a Git subcommand:
 
