@@ -32,8 +32,7 @@ cargo install git-cmt
 ### Via Installation Script
 
 ```sh
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/adernild/comet/releases/download/v0.1.0/git-cmt-installer.sh | sh
-
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/adernild/comet/releases/latest/download/git-cmt-installer.sh | sh
 ```
 
 ### Verify Installation
