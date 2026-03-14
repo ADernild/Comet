@@ -1,5 +1,5 @@
 [package]
-name = "Comet"
+name = "git-cmt"
 version = "0.1.0"
 edition = "2024"
 description = "A CLI tool for generating consistent commit messages using the Conventional Commits standard"
@@ -25,3 +25,8 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.26.0"
 textwrap = "0.16.2"
 toml = "1.0.3"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

@@ -3,23 +3,6 @@
 version = 4
 
 [[package]]
-name = "Comet"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "dirs",
- "git2",
- "inquire",
- "regex",
- "serde",
- "strum",
- "tempfile",
- "textwrap",
- "toml",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -326,6 +309,23 @@ dependencies = [
  "libc",
  "r-efi",
  "wasip2",
+]
+
+[[package]]
+name = "git-cmt"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dirs",
+ "git2",
+ "inquire",
+ "regex",
+ "serde",
+ "strum",
+ "tempfile",
+ "textwrap",
+ "toml",
 ]
 
 [[package]]
