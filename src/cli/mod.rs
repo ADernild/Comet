@@ -1,6 +1,5 @@
 mod commit;
 mod init;
-mod stats;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
