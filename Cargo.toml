@@ -24,7 +24,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 textwrap = "0.16.2"
-toml = "1.0.6"
+toml = "1.1.0"
 
 # The profile that 'dist' will build with
 [profile.dist]
