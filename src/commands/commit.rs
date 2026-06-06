@@ -6,7 +6,7 @@ use crate::{cli::CommitArgs, config, git, ui};
 
 pub fn run(args: &CommitArgs) -> Result<()> {
     // Check if we're in a git repository
-    let _ = git::find_repository()?;
+    git::find_repository()?;
 
     // Checjk if there are staged changes
     if !git::has_staged_changes()? {
