@@ -40,6 +40,7 @@ pub fn minimal() -> Config {
                 values: None,
             },
         ],
+        rules: vec![],
     }
 }
 

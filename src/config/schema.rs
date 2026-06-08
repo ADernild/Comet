@@ -1,3 +1,4 @@
+use super::rules::Rule;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -10,6 +11,10 @@ pub struct Config {
     /// List of fields to prompt for
     #[serde(rename = "field", default)]
     pub fields: Vec<Field>,
+
+    /// List of Rules
+    #[serde(rename = "rule", default)]
+    pub rules: Vec<Rule>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,6 +96,7 @@ impl Config {
     pub fn validate(&self) -> Result<()> {
         self.validate_template_fields()?;
         self.validate_select_options()?;
+        self.validate_rules()?;
         Ok(())
     }
 
@@ -130,6 +136,36 @@ impl Config {
                         bail!("Select field '{}' must have at least one option", field.id)
                     }
                     _ => {}
+                }
+            }
+        }
+        Ok(())
+    }
+    fn validate_rules(&self) -> Result<()> {
+        let known_fields: HashSet<String> = self.fields.iter().map(|f| f.id.clone()).collect();
+
+        for rule in &self.rules {
+            let label = rule.name.as_deref().unwrap_or("<unnamed>");
+
+            for field in rule.condition.referenced_fields() {
+                if !known_fields.contains(field) {
+                    bail!(
+                        "Rule '{}' references unknown field '{}' in condition",
+                        label,
+                        field
+                    );
+                }
+            }
+
+            for action in &rule.action {
+                for field in action.referenced_fields() {
+                    if !known_fields.contains(field) {
+                        bail!(
+                            "Rule '{}' references unknown field '{}' in action",
+                            label,
+                            field
+                        );
+                    }
                 }
             }
         }

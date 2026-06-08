@@ -35,6 +35,8 @@ pub fn run(args: &CommitArgs) -> Result<()> {
     // Resolve field values from args and prompts
     let values = resolve_values(args, &config)?;
 
+    config::evaluate_rules(&config.rules, &values)?;
+
     let commit_message = config.render(&values)?;
 
     println!("\nCommit message:\n");

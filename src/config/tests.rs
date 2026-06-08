@@ -21,7 +21,7 @@ fn config(template: &str, fields: Vec<Field>) -> Config {
             template: template.to_string(),
         },
         fields,
-        // rules: vec![],
+        rules: vec![],
     }
 }
 
