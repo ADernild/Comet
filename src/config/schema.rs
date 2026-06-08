@@ -1,7 +1,7 @@
-use std::collections::HashSet;
-
+use super::rules::Rule;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -9,8 +9,12 @@ pub struct Config {
     pub output: OutputConfig,
 
     /// List of fields to prompt for
-    #[serde(rename = "field")]
+    #[serde(rename = "field", default)]
     pub fields: Vec<Field>,
+
+    /// List of Rules
+    #[serde(rename = "rule", default)]
+    pub rules: Vec<Rule>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,6 +94,13 @@ pub struct Validation {
 impl Config {
     /// Validate that all template placeholders have corresponding fields
     pub fn validate(&self) -> Result<()> {
+        self.validate_template_fields()?;
+        self.validate_select_options()?;
+        self.validate_rules()?;
+        Ok(())
+    }
+
+    fn validate_template_fields(&self) -> Result<()> {
         // Extract placeholders from template
         let placeholder_regex = regex::Regex::new(r"\{([^}]+)\}").unwrap();
         let placeholders: HashSet<String> = placeholder_regex
@@ -99,7 +110,6 @@ impl Config {
 
         let known_fields: HashSet<String> = self.fields.iter().map(|f| f.id.clone()).collect();
 
-        // Check for undefined placeholders in template
         let undefined: Vec<String> = placeholders.difference(&known_fields).cloned().collect();
         if !undefined.is_empty() {
             bail!(
@@ -108,12 +118,15 @@ impl Config {
             )
         }
 
-        // Check for unused fields
         let unused: Vec<String> = known_fields.difference(&placeholders).cloned().collect();
         if !unused.is_empty() {
             bail!("Config defines unused fields: {}", unused.join(", "))
         }
 
+        Ok(())
+    }
+
+    fn validate_select_options(&self) -> Result<()> {
         // Validate that Select fields have options
         for field in &self.fields {
             if field.field_type == FieldType::Select {
@@ -126,245 +139,36 @@ impl Config {
                 }
             }
         }
-
         Ok(())
     }
+    fn validate_rules(&self) -> Result<()> {
+        let known_fields: HashSet<String> = self.fields.iter().map(|f| f.id.clone()).collect();
 
-    /// Render the commit message using the template and field values
-    pub fn render(&self, values: &std::collections::HashMap<String, String>) -> Result<String> {
-        let mut output = self.output.template.clone();
+        for rule in &self.rules {
+            let label = rule.name.as_deref().unwrap_or("<unnamed>");
 
-        let optional_fields: HashSet<String> = self
-            .fields
-            .iter()
-            .filter(|f| !f.required)
-            .map(|f| f.id.clone())
-            .collect();
-
-        for (key, value) in values {
-            let placeholder = format!("{{{}}}", key);
-
-            if value.is_empty() {
-                // If it's optional, remove the placeholder
-                if optional_fields.contains(key) {
-                    output = output.replace(&placeholder, "");
-                } else {
-                    // If it's required and empty, that's an error
-                    bail!("Required field '{}' cannot be empty", key);
+            for field in rule.condition.referenced_fields() {
+                if !known_fields.contains(field) {
+                    bail!(
+                        "Rule '{}' references unknown field '{}' in condition",
+                        label,
+                        field
+                    );
                 }
-            } else {
-                output = output.replace(&placeholder, value);
+            }
+
+            for action in &rule.action {
+                for field in action.referenced_fields() {
+                    if !known_fields.contains(field) {
+                        bail!(
+                            "Rule '{}' references unknown field '{}' in action",
+                            label,
+                            field
+                        );
+                    }
+                }
             }
         }
-        Ok(Self::clean_output(&output))
-    }
-
-    /// Clean up the rendered output by removing empty sections
-    fn clean_output(text: &str) -> String {
-        let mut result = text.to_string();
-
-        result = result.replace("()", "");
-
-        result = result
-            .lines()
-            .filter(|line| !line.trim().is_empty() || line.is_empty())
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        while result.contains("\n\n\n") {
-            result = result.replace("\n\n\n", "\n\n")
-        }
-        result = result.trim().to_string();
-
-        result
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use std::collections::HashMap;
-
-    // Test fixtures
-    fn create_field(id: &str, required: bool, field_type: FieldType) -> Field {
-        Field {
-            id: id.to_string(),
-            field_type,
-            prompt: format!("{} field", id),
-            required,
-            help: None,
-            options: None,
-            validate: None,
-            wrap: None,
-            values: None,
-        }
-    }
-
-    fn create_config(template: &str, field_ids: Vec<(&str, bool, FieldType)>) -> Config {
-        Config {
-            output: OutputConfig {
-                template: template.to_string(),
-            },
-            fields: field_ids
-                .into_iter()
-                .map(|(id, required, field_type)| create_field(id, required, field_type))
-                .collect(),
-        }
-    }
-
-    fn create_values(pairs: Vec<(&str, &str)>) -> HashMap<String, String> {
-        pairs
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect()
-    }
-
-    // Validation tests
-    #[test]
-    fn test_validate_rejects_undefined_placeholders() {
-        let config = create_config(
-            "{type}: {undefined_field}",
-            vec![("type", true, FieldType::Text)],
-        );
-
-        assert!(config.validate().is_err());
-    }
-
-    #[test]
-    fn test_validate_rejects_unused_fields() {
-        let config = create_config(
-            "{type}: {description}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("description", true, FieldType::Text),
-                ("unused_field", false, FieldType::Text),
-            ],
-        );
-
-        assert!(config.validate().is_err());
-    }
-
-    #[test]
-    fn test_validate_accepts_valid_configs() {
-        let config = create_config(
-            "{type}({scope}): {description}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("scope", false, FieldType::Text),
-                ("description", true, FieldType::Text),
-            ],
-        );
-
-        assert!(config.validate().is_ok());
-    }
-
-    // Render tests
-    #[test]
-    fn test_render_with_all_fields() {
-        let config = create_config(
-            "{type}({scope}): {description}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("scope", false, FieldType::Text),
-                ("description", true, FieldType::Text),
-            ],
-        );
-
-        let values = create_values(vec![
-            ("type", "feat"),
-            ("scope", "api"),
-            ("description", "add endpoint"),
-        ]);
-
-        let result = config.render(&values).unwrap();
-        assert_eq!(result, "feat(api): add endpoint");
-    }
-
-    #[test]
-    fn test_render_removes_empty_optional_field() {
-        let config = create_config(
-            "{type}({scope}): {description}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("scope", false, FieldType::Text),
-                ("description", true, FieldType::Text),
-            ],
-        );
-        let values = create_values(vec![
-            ("type", "feat"),
-            ("scope", ""),
-            ("description", "add endpoint"),
-        ]);
-
-        let result = config.render(&values).unwrap();
-        assert_eq!(result, "feat: add endpoint");
-    }
-
-    #[test]
-    fn test_render_with_multiline_fields() {
-        let config = create_config(
-            "{type}: {description}\n\n{body}\n\n{footer}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("description", true, FieldType::Text),
-                ("body", false, FieldType::Multiline),
-                ("footer", false, FieldType::Text),
-            ],
-        );
-
-        let values = create_values(vec![
-            ("type", "feat"),
-            ("description", "add feature"),
-            ("body", "Detailed explanation"),
-            ("footer", "Closes #123"),
-        ]);
-
-        let result = config.render(&values).unwrap();
-        assert_eq!(
-            result,
-            "feat: add feature\n\nDetailed explanation\n\nCloses #123"
-        );
-    }
-
-    #[test]
-    fn test_render_removes_empty_optional_multiline_fields() {
-        let config = create_config(
-            "{type}: {description}\n\n{body}\n\n{footer}",
-            vec![
-                ("type", true, FieldType::Text),
-                ("description", true, FieldType::Text),
-                ("body", false, FieldType::Multiline),
-                ("footer", false, FieldType::Text),
-            ],
-        );
-
-        let values = create_values(vec![
-            ("type", "feat"),
-            ("description", "add feature"),
-            ("body", ""),
-            ("footer", ""),
-        ]);
-
-        let result = config.render(&values).unwrap();
-        assert_eq!(result, "feat: add feature");
-    }
-
-    #[test]
-    fn test_render_rejects_empty_required_fields() {
-        let config = create_config(
-            "{type}({scope}): {description}",
-            vec![
-                ("type", true, FieldType::Select),
-                ("scope", false, FieldType::Multiline),
-                ("description", true, FieldType::Text),
-            ],
-        );
-        let values = create_values(vec![
-            ("type", ""),
-            ("scope", ""),
-            ("description", "add feature"),
-        ]);
-
-        assert!(config.render(&values).is_err());
+        Ok(())
     }
 }

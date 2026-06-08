@@ -61,6 +61,7 @@ git cmt -h
 - ✅ **Built-in validation** - Enforce message length, patterns, and required fields
 - ✍️ **Git integration** - Uses `git commit` under the hood, respecting all your existing Git configuration
 - 🔍 **Git-aware** - Detects repository and shows staged files
+- 📋 **Conditional rules** - Enforce constraints based on field values with a flexible rule engine
 
 ## Usage
 
@@ -268,6 +269,77 @@ Use regex pattern matching:
 ```toml
 [field.validate]
 pattern = "^[a-zA-Z-]+[: #].+$"
+```
+
+### Rules
+
+Rules enforce conditional constraints across fields after all values are collected.
+A rule consists of a **condition** and one or more **actions** that apply when condition is met.
+
+```toml
+[[rule]]
+name = "feat-requires-scope"
+
+[rule.condition]
+eq = ["type", "feat"]
+
+[[rule.action]]
+require = { fields = ["scope"] }
+```
+
+#### Conditions
+
+| Condition | Description | Example |
+|---|---|---|
+| `eq` | Field equals a value | `eq = ["type", "feat"]` |
+| `neq` | Field does not equal a value | `neq = ["type", "chore"]` |
+| `in` | Field is one of a set of values | `in = ["type", ["feat", "fix"]]` |
+| `exists` | Field is non-empty | `exists = "scope"` |
+| `and` | Both expressions are true | |
+| `or` | Either expression is true | |
+| `not` | Expression is false | |
+
+#### Actions
+
+| Action | Description | Example |
+|---|---|---|
+| `require` | Fields must be non-empty | `require = { fields = ["scope"] }` |
+| `forbid` | Fields must be empty | `forbid = { fields = ["scope"] }` |
+| `equals` | Fields must equal a value | `equals = { fields = ["type"], value = "feat" }` |
+
+All actions accept an optional `message` to override the default error:
+
+```toml
+[[rule.action]]
+require = { fields = ["scope"], message = "Features must have a scope" }
+```
+
+
+#### Example: Require footer for breaking changes
+
+```toml
+[[rule]]
+name = "breaking-requires-footer"
+
+[rule.condition]
+eq = ["type", "feat"]
+
+[[rule.action]]
+require = { fields = ["footer"], message = "Feature commits must reference an issue in the footer" }
+```
+
+#### Logical combinators
+
+```toml
+[[rule]]
+name = "scope-required-for-feat-or-fix"
+
+[rule.condition.or]
+0 = { eq = ["type", "feat"] }
+1 = { eq = ["type", "fix"] }
+
+[[rule.action]]
+require = { fields = ["scope"] }
 ```
 
 ### Template System

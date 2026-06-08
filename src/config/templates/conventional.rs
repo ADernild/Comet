@@ -82,6 +82,7 @@ pub fn conventional_commits() -> Config {
                 values: None,
             },
         ],
+        rules: vec![],
     }
 }
 
