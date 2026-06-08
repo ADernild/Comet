@@ -73,7 +73,7 @@ impl Expr {
             Expr::Eq(field, value) => ctx.get(field) == Some(value),
             Expr::Neq(field, value) => ctx.get(field) != Some(value),
 
-            Expr::In(field, values) => ctx.get(field).map_or(false, |v| values.contains(v)),
+            Expr::In(field, values) => ctx.get(field).is_some_and(|v| values.contains(v)),
 
             Expr::Exists(field) => ctx.contains_key(field),
         }
@@ -128,7 +128,7 @@ impl Action {
         match self {
             Action::Require { fields, message } => {
                 for field in fields {
-                    if values.get(field).map_or(true, |v| v.is_empty()) {
+                    if values.get(field).is_none_or(|v| v.is_empty()) {
                         violations.push(RuleViolation {
                             rule_name: rule_name.clone(),
                             message: message.clone().unwrap_or_else(|| {
@@ -140,7 +140,7 @@ impl Action {
             }
             Action::Forbid { fields, message } => {
                 for field in fields {
-                    if values.get(field).map_or(false, |v| !v.is_empty()) {
+                    if values.get(field).is_some_and(|v| !v.is_empty()) {
                         violations.push(RuleViolation {
                             rule_name: rule_name.clone(),
                             message: message.clone().unwrap_or_else(|| {
