@@ -1,10 +1,15 @@
 [package]
 name = "git-cmt"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "A CLI tool for generating consistent commit messages using the Conventional Commits standard"
 license = "MIT OR Apache-2.0"
 authors = ["Alexander Dernild <alex@dernild.dk>"]
+include = [
+    "/src",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+]
 repository = "https://github.com/adernild/comet"
 keywords = ["git", "commit", "conventional-commits", "cli"]
 categories = ["command-line-utilities", "development-tools"]
